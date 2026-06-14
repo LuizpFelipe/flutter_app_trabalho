@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 
 class ProducaoProvider extends ChangeNotifier {
-  final Dio _dio = Dio(BaseOptions(baseUrl: "http://192.168.1.92:8000"));
+  final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: "https://romantic-appreciation-production-6580.up.railway.app",
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
+      followRedirects: true,
+      maxRedirects: 5,
+      headers: {'Accept': 'application/json'},
+    ),
+  );
 
   Map<int, Map<String, dynamic>> _itensCarrinho = {};
   List<dynamic> _listaCompras = [];

@@ -7,7 +7,7 @@ class Ingrediente {
 
   String get urlCompleta {
     if (imagem != null && imagem!.isNotEmpty) {
-      return "http://192.168.1.92:8000/static/$imagem";
+      return "https://romantic-appreciation-production-6580.up.railway.app/uploads/$imagem";
     }
     return "https://via.placeholder.com/150?text=Sem+Imagem";
   }

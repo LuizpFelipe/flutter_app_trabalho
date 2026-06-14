@@ -6,9 +6,11 @@ import '../models/receita.dart';
 class ReceitaProvider extends ChangeNotifier {
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "http://192.168.1.92:8000",
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      baseUrl: "https://romantic-appreciation-production-6580.up.railway.app",
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
+      followRedirects: true,
+      maxRedirects: 5,
       headers: {'Accept': 'application/json'},
     ),
   );
@@ -116,7 +118,6 @@ class ReceitaProvider extends ChangeNotifier {
       notifyListeners();
 
       await _dio.delete('/receitas/$id');
-
       _receitas.removeWhere((r) => r.id == id);
 
       if (context.mounted) {
@@ -124,32 +125,15 @@ class ReceitaProvider extends ChangeNotifier {
       }
     } on DioException catch (e) {
       debugPrint("Erro ao excluir: ${e.message}");
-
-      String mensagemErroDoServidor = "Erro ao excluir receita.";
-
-      if (e.response != null && e.response!.data != null) {
-        if (e.response!.data is Map && e.response!.data['detail'] != null) {
-          mensagemErroDoServidor = e.response!.data['detail'];
-        }
+      String msg = "Erro ao excluir receita.";
+      if (e.response?.data != null && e.response!.data is Map) {
+        msg = e.response!.data['detail'] ?? msg;
       }
-
-      if (context.mounted) {
-        _mostrarMsg(context, mensagemErroDoServidor, Colors.red);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        _mostrarMsg(context, "Erro inesperado ao excluir.", Colors.red);
-      }
+      if (context.mounted) _mostrarMsg(context, msg, Colors.red);
     } finally {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  void _mostrarMsg(BuildContext context, String txt, Color cor) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(txt), backgroundColor: cor));
   }
 
   Future<String?> verificarSugestaoNome(String nome) async {
@@ -163,5 +147,12 @@ class ReceitaProvider extends ChangeNotifier {
       debugPrint("Erro ao verificar sugestão de nome: $e");
       return null;
     }
+  }
+
+  void _mostrarMsg(BuildContext context, String txt, Color cor) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(txt), backgroundColor: cor));
   }
 }

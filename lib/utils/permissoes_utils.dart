@@ -3,20 +3,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 class PermissoesUtils {
   static Future<bool> verificarGaleria(BuildContext context) async {
-    var status = await Permission.photos.status;
-
-    if (status.isDenied) {
-      status = await Permission.photos.request();
-    }
-
-    if (status.isPermanentlyDenied) {
-      if (context.mounted) {
-        _mostrarAlertaConfiguracao(context, "Galeria");
-      }
-      return false;
-    }
-
-    return status.isGranted;
+    return true;
   }
 
   static Future<bool> verificarCamera(BuildContext context) async {

@@ -4,6 +4,7 @@ import 'package:flutter_app_trabalho/utils/image_utils.dart';
 import 'package:provider/provider.dart';
 import '../models/ingrediente.dart';
 import '../providers/inteligencia_provider.dart';
+import '../providers/ingrediente_provider.dart';
 import '../utils/ui_helper.dart';
 
 class FormularioIngredienteModal extends StatefulWidget {
@@ -29,6 +30,7 @@ class _FormularioIngredienteModalState
 
   File? _imagemSelecionada;
   bool _isSaving = false;
+  String? _mensagemErro;
 
   @override
   void initState() {
@@ -88,6 +90,31 @@ class _FormularioIngredienteModalState
                 ),
               ),
               const SizedBox(height: 24),
+              if (_mensagemErro != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _mensagemErro!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               TextFormField(
                 controller: _nomeController,
                 decoration: const InputDecoration(
@@ -110,7 +137,10 @@ class _FormularioIngredienteModalState
               ? null
               : () async {
                   if (!_formKey.currentState!.validate()) return;
-                  setState(() => _isSaving = true);
+                  setState(() {
+                    _isSaving = true;
+                    _mensagemErro = null;
+                  });
 
                   try {
                     String nomeAtual = _nomeController.text.trim();
@@ -129,23 +159,41 @@ class _FormularioIngredienteModalState
                         if (aceitou) nomeAtual = sugestao;
                       }
                     }
-
+                    if (nomeAtual.toLowerCase() !=
+                            _nomeOriginal.toLowerCase() &&
+                        context.mounted) {
+                      final ingredientesProvider = context
+                          .read<IngredienteProvider>();
+                      final existe = ingredientesProvider.ingredientes.any(
+                        (ing) =>
+                            ing.nome.toLowerCase() == nomeAtual.toLowerCase(),
+                      );
+                      if (existe) {
+                        setState(() {
+                          _mensagemErro =
+                              'O ingrediente "$nomeAtual" já está cadastrado.';
+                          _isSaving = false;
+                        });
+                        return;
+                      }
+                    }
                     await widget.onSalvar(nomeAtual, _imagemSelecionada);
 
                     if (mounted) Navigator.pop(context);
                   } catch (e) {
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Erro ao salvar: ${e.toString()}'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                      setState(() {
+                        _mensagemErro = 'Erro ao salvar: ${e.toString()}';
+                      });
                     }
                   } finally {
                     if (mounted) setState(() => _isSaving = false);
                   }
                 },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colorScheme.primary,
+            foregroundColor: Colors.white,
+          ),
           child: _isSaving
               ? const SizedBox(
                   width: 20,

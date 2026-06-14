@@ -6,9 +6,12 @@ import '../models/ingrediente.dart';
 class IngredienteProvider extends ChangeNotifier {
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "http://192.168.1.92:8000",
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      baseUrl: "https://romantic-appreciation-production-6580.up.railway.app",
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
+      followRedirects: true,
+      maxRedirects: 5,
+      headers: {'Accept': 'application/json'},
     ),
   );
 
@@ -56,16 +59,11 @@ class IngredienteProvider extends ChangeNotifier {
       await listar();
 
       if (context.mounted) {
-        _mostrarSnackBar(
-          context,
-          "Ingrediente criado com sucesso!",
-          Colors.green,
-        );
+        _mostrarSnackBar(context, "Ingrediente criado!", Colors.green);
       }
     } catch (e) {
-      debugPrint("Erro ao criar: $e");
       if (context.mounted) {
-        _mostrarSnackBar(context, "Erro ao criar ingrediente", Colors.red);
+        _mostrarSnackBar(context, "Erro ao criar", Colors.red);
       }
     } finally {
       _isLoading = false;
@@ -96,16 +94,11 @@ class IngredienteProvider extends ChangeNotifier {
       await listar();
 
       if (context.mounted) {
-        _mostrarSnackBar(
-          context,
-          "Ingrediente atualizado com sucesso!",
-          Colors.green,
-        );
+        _mostrarSnackBar(context, "Ingrediente atualizado!", Colors.green);
       }
     } catch (e) {
-      debugPrint("Erro ao editar: $e");
       if (context.mounted) {
-        _mostrarSnackBar(context, "Erro ao atualizar ingrediente", Colors.red);
+        _mostrarSnackBar(context, "Erro ao atualizar", Colors.red);
       }
     } finally {
       _isLoading = false;
@@ -113,20 +106,20 @@ class IngredienteProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> excluir(int id, BuildContext context) async {
+  Future<bool> excluir(int id, BuildContext context) async {
     try {
       await _dio.delete('/ingredientes/$id');
       _ingredientes.removeWhere((i) => i.id == id);
       notifyListeners();
+
       if (context.mounted) {
-        _mostrarSnackBar(context, "Ingrediente removido!", Colors.green);
+        _mostrarSnackBar(context, "Removido com sucesso!", Colors.green);
       }
-    } on DioException catch (e) {
-      String mensagem = "Erro ao excluir";
-      if (e.response != null && e.response?.data is Map) {
-        mensagem = e.response?.data['detail'] ?? mensagem;
-      }
-      if (context.mounted) _mostrarSnackBar(context, mensagem, Colors.red);
+      return true;
+    } catch (e) {
+      // Retorna false silenciosamente para qualquer erro (vínculo ou servidor).
+      // A tela (IngredienteScreen) cuidará de exibir o modal de aviso.
+      return false;
     }
   }
 

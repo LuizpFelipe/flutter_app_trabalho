@@ -15,7 +15,12 @@ class FichaDetalheWidget extends StatelessWidget {
           children: [
             Icon(Icons.delete_outline, color: Colors.orange),
             SizedBox(width: 10),
-            Text("Remover Insumo"),
+            Expanded(
+              child: Text(
+                "Remover Ingrediente",
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         content: Text(

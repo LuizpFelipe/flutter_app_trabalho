@@ -72,6 +72,7 @@ class _ReceitaScreenState extends State<ReceitaScreen> {
               ),
             ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () => _abrirFormulario(),
         backgroundColor: colorScheme.primary,
         foregroundColor: Colors.white,

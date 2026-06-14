@@ -27,6 +27,7 @@ class _FormularioReceitaModalState extends State<FormularioReceitaModal> {
   late String _nomeOriginal;
   File? _imagemSelecionada;
   bool _isSaving = false;
+  String? _mensagemErro;
 
   @override
   void initState() {
@@ -88,6 +89,32 @@ class _FormularioReceitaModalState extends State<FormularioReceitaModal> {
                 ),
               ),
               const SizedBox(height: 24),
+              if (_mensagemErro != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _mensagemErro!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               TextFormField(
                 controller: _nomeController,
                 decoration: InputDecoration(
@@ -131,7 +158,10 @@ class _FormularioReceitaModalState extends State<FormularioReceitaModal> {
               ? null
               : () async {
                   if (!_formKey.currentState!.validate()) return;
-                  setState(() => _isSaving = true);
+                  setState(() {
+                    _isSaving = true;
+                    _mensagemErro = null;
+                  });
 
                   try {
                     String nomeAtual = _nomeController.text.trim();
@@ -166,7 +196,24 @@ class _FormularioReceitaModalState extends State<FormularioReceitaModal> {
                         if (aceitou) nomeAtual = sugestao;
                       }
                     }
+                    if (nomeAtual.toLowerCase() !=
+                            _nomeOriginal.toLowerCase() &&
+                        context.mounted) {
+                      final receitaProvider = context.read<ReceitaProvider>();
+                      final existe = receitaProvider.receitas.any(
+                        (rec) =>
+                            rec.nome.toLowerCase() == nomeAtual.toLowerCase(),
+                      );
 
+                      if (existe) {
+                        setState(() {
+                          _mensagemErro =
+                              'A receita "$nomeAtual" já está cadastrada.';
+                          _isSaving = false;
+                        });
+                        return;
+                      }
+                    }
                     await widget.onSalvar(
                       nomeAtual,
                       int.parse(_rendimentoController.text.trim()),
@@ -176,12 +223,9 @@ class _FormularioReceitaModalState extends State<FormularioReceitaModal> {
                     if (mounted) Navigator.pop(context);
                   } catch (e) {
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Erro: ${e.toString()}'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                      setState(() {
+                        _mensagemErro = 'Erro ao salvar: ${e.toString()}';
+                      });
                     }
                   } finally {
                     if (mounted) setState(() => _isSaving = false);

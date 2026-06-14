@@ -113,7 +113,6 @@ class FichaCard extends StatelessWidget {
                 children: [
                   TextButton.icon(
                     onPressed: () async {
-                      // Confirmação antes de chamar a função de limpar
                       bool confirmar =
                           await showDialog<bool>(
                             context: context,

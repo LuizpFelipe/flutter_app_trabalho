@@ -35,8 +35,11 @@ class _ModalFichaTecnicaState extends State<ModalFichaTecnica> {
 
     return AlertDialog(
       title: const Text("Montar Ficha Técnica"),
-      content: SizedBox(
+      content: Container(
         width: 400,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -93,7 +96,6 @@ class _ModalFichaTecnicaState extends State<ModalFichaTecnica> {
                           if (_formKey.currentState!.validate() &&
                               _ingredienteSelecionado != null) {
                             final id = _ingredienteSelecionado.id!;
-                            // VALIDAÇÃO REINSERIDA:
                             final jaNoBanco = provider
                                 .itensDaReceita(widget.receitaIdPre)
                                 .any((i) => i.ingredienteId == id);
@@ -143,8 +145,7 @@ class _ModalFichaTecnicaState extends State<ModalFichaTecnica> {
               ),
             ),
             const Divider(height: 30),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 250),
+            Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: rascunho.length,

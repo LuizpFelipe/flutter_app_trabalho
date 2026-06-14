@@ -30,7 +30,6 @@ class _IngredienteScreenState extends State<IngredienteScreen> {
         ingrediente: ingrediente,
         onSalvar: (nome, imagem) async {
           final p = context.read<IngredienteProvider>();
-
           ingrediente == null
               ? await p.criar(nome, imagem, context)
               : await p.editar(ingrediente.id!, nome, imagem, context);
@@ -46,7 +45,32 @@ class _IngredienteScreenState extends State<IngredienteScreen> {
         titulo: 'Excluir Ingrediente',
         mensagem: 'Deseja realmente excluir "${item.nome}"?',
         onConfirmar: () async {
-          await context.read<IngredienteProvider>().excluir(item.id!, context);
+          Navigator.pop(ctx);
+
+          final provider = context.read<IngredienteProvider>();
+          final sucesso = await provider.excluir(item.id!, context);
+
+          if (!sucesso && mounted) {
+            showDialog(
+              context: context,
+              builder: (errorCtx) => AlertDialog(
+                title: const Text(
+                  "Não é possível excluir",
+                  style: TextStyle(color: Colors.red),
+                ),
+                content: Text(
+                  "O ingrediente '${item.nome}' está vinculado a uma ficha técnica. "
+                  "Remova o vínculo antes de excluir.",
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(errorCtx),
+                    child: const Text("OK"),
+                  ),
+                ],
+              ),
+            );
+          }
         },
       ),
     );
